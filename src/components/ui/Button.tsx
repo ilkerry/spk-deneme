@@ -23,7 +23,7 @@ export function Button({ title, onPress, tone = 'primary', icon, style, disabled
   const tones: Record<Tone, { bg: string; edge: string; fg: string }> = {
     primary: { bg: colors.primary, edge: colors.primaryDeep, fg: colors.textOnPrimary },
     known: { bg: colors.known, edge: '#159A78', fg: '#FFFFFF' },
-    review: { bg: colors.review, edge: '#E0563A', fg: '#FFFFFF' },
+    review: { bg: colors.review, edge: '#C93A55', fg: '#FFFFFF' },
     neutral: { bg: colors.surface, edge: colors.border, fg: colors.text },
   };
   const t = tones[tone];

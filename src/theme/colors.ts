@@ -1,21 +1,21 @@
 /**
  * Hapla renk paleti.
- * Ana renk güneş sarısı; yazı ve kontrast için derin mor-lacivert.
- * "Biliyorum" = nane yeşili, "Tekrar et" = mercan turuncusu.
+ * Ana renk sıcak turuncu; yazı ve kontrast için derin mor-lacivert.
+ * "Biliyorum" = nane yeşili, "Tekrar et" = gül kırmızısı.
  */
 
 const palette = {
-  sun: '#FFC93C',
-  sunDeep: '#F5A800',
-  sunSoft: '#FFF1C4',
+  sun: '#FF9A2E',
+  sunDeep: '#E0700B',
+  sunSoft: '#FFE6CC',
   ink: '#2B2350',
   inkSoft: '#6E6890',
-  cream: '#FFF8E7',
+  cream: '#FFF4EA',
   white: '#FFFFFF',
   mint: '#22C39A',
   mintSoft: '#D5F5EB',
-  coral: '#FF7A59',
-  coralSoft: '#FFE2D9',
+  coral: '#F2546E',
+  coralSoft: '#FFDDE3',
   lilac: '#8C7BFF',
   lilacSoft: '#E9E5FF',
   sky: '#3FAEF7',
@@ -57,7 +57,7 @@ export const lightColors: ColorTokens = {
   background: palette.cream,
   surface: palette.white,
   surfaceAlt: palette.sunSoft,
-  border: '#F1E4BF',
+  border: '#F6DCC4',
   text: palette.ink,
   textMuted: palette.inkSoft,
   textOnPrimary: palette.ink,
@@ -74,7 +74,7 @@ export const lightColors: ColorTokens = {
   skySoft: palette.skySoft,
   pink: palette.pink,
   pinkSoft: palette.pinkSoft,
-  shadow: '#C9A646',
+  shadow: '#D98A45',
   tabBar: palette.white,
 };
 
@@ -86,12 +86,12 @@ export const darkColors: ColorTokens = {
   text: palette.cream,
   textMuted: '#B3ABD6',
   textOnPrimary: palette.ink,
-  primary: '#FFD04D',
+  primary: '#FFA23F',
   primaryDeep: palette.sunDeep,
-  primarySoft: '#3B3256',
+  primarySoft: '#3E2F4C',
   known: '#35D6AC',
   knownSoft: '#1F3F44',
-  review: '#FF8B6E',
+  review: '#FF6F86',
   reviewSoft: '#45293A',
   lilac: '#A396FF',
   lilacSoft: '#2F2A5C',

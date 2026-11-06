@@ -16,7 +16,7 @@ const ICONS: Record<string, { on: IconName; off: IconName; label: string }> = {
   profile: { on: 'person-circle', off: 'person-circle-outline', label: 'Profil' },
 };
 
-/** Ekranın altında yüzen, sarı vurgulu özel sekme çubuğu. */
+/** Ekranın altında yüzen, turuncu vurgulu özel sekme çubuğu. */
 export function TabBar({ state, navigateToTab }: BottomTabBarProps) {
   const { colors, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
