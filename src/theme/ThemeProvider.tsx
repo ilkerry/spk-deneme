@@ -1,9 +1,11 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
+
+import { useSettings, type ThemePreference } from '@/store/settings';
 
 import { darkColors, lightColors, type ColorTokens } from './colors';
 
-export type ThemePreference = 'system' | 'light' | 'dark';
+export type { ThemePreference };
 
 type ThemeContextValue = {
   colors: ColorTokens;
@@ -14,16 +16,21 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+/** Tema; tercih ayarlarda (cihazda) saklanır. SettingsProvider içinde kullanılmalı. */
 export function AppThemeProvider({ children }: { children: ReactNode }) {
   const system = useColorScheme();
-  // Not: tercih şimdilik bellekte; 6. aşamada cihaza kaydedilecek.
-  const [preference, setPreference] = useState<ThemePreference>('system');
+  const { theme: preference, update } = useSettings();
 
   const isDark = preference === 'system' ? system === 'dark' : preference === 'dark';
 
   const value = useMemo(
-    () => ({ colors: isDark ? darkColors : lightColors, isDark, preference, setPreference }),
-    [isDark, preference],
+    () => ({
+      colors: isDark ? darkColors : lightColors,
+      isDark,
+      preference,
+      setPreference: (theme: ThemePreference) => update({ theme }),
+    }),
+    [isDark, preference, update],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

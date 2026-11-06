@@ -1,6 +1,9 @@
 import { Pressable, TextInput, View } from 'react-native';
 
 import { AppText, Button, EmojiBubble, Screen, Segmented, Surface } from '@/components/ui';
+import { confirm } from '@/lib/confirm';
+import { haptic } from '@/lib/haptics';
+import { useProgress } from '@/store/progress';
 import { useSettings, type AutoReview, type StudyMode } from '@/store/settings';
 import { Fonts, Radius, Spacing, useAppTheme, type ThemePreference } from '@/theme';
 
@@ -25,6 +28,19 @@ function SettingBlock({ title, hint, children }: { title: string; hint?: string;
 export default function ProfileScreen() {
   const { colors, preference, setPreference } = useAppTheme();
   const s = useSettings();
+  const { reset } = useProgress();
+
+  const onReset = async () => {
+    const ok = await confirm(
+      'İlerlemeyi sıfırla',
+      'Tüm kart durumların, serin ve günlük kayıtların silinecek. Bu işlem geri alınamaz.',
+      'Sıfırla',
+    );
+    if (ok) {
+      haptic.warning();
+      reset();
+    }
+  };
 
   return (
     <Screen withTabBar>
@@ -128,9 +144,9 @@ export default function ProfileScreen() {
         </SettingBlock>
       </Surface>
 
-      <Button title="İlerlemeyi sıfırla" tone="neutral" disabled />
+      <Button title="İlerlemeyi sıfırla" tone="neutral" onPress={onReset} />
       <AppText variant="caption" muted center>
-        Hapla · sürüm 0.1 (1. aşama)
+        Hapla · sürüm 0.5
       </AppText>
     </Screen>
   );

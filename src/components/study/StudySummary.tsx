@@ -1,9 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { ScrollView, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, View } from 'react-native';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 import { AppText, Button, ProgressBar, Surface } from '@/components/ui';
 import type { Card } from '@/data/content';
+import { haptic } from '@/lib/haptics';
+import { useProgress } from '@/store/progress';
 import { Spacing, useAppTheme } from '@/theme';
 
 type StudySummaryProps = {
@@ -27,6 +30,8 @@ function verdict(ratio: number) {
 
 export function StudySummary({ known, review, onStudyReview, onRestart, onClose }: StudySummaryProps) {
   const { colors } = useAppTheme();
+  const { requeue } = useProgress();
+  const [requeued, setRequeued] = useState<Set<string>>(new Set());
   const total = known.length + review.length;
   const ratio = total ? known.length / total : 0;
   const v = verdict(ratio);
@@ -96,6 +101,51 @@ export function StudySummary({ known, review, onStudyReview, onRestart, onClose 
                 </AppText>
               </View>
             ))}
+          </Surface>
+        </Animated.View>
+      )}
+
+      {known.length > 0 && (
+        <Animated.View entering={FadeInDown.delay(550)}>
+          <Surface style={{ gap: Spacing.md }}>
+            <View style={{ gap: 2 }}>
+              <AppText variant="bodyBold">✓ Bildiğin kartlar</AppText>
+              <AppText variant="caption" muted>
+                Tekrar çalışmak istediğin kartı 🔁 ile tekrar destesine ekleyebilirsin.
+              </AppText>
+            </View>
+            {known.map((c) => {
+              const added = requeued.has(c.id);
+              return (
+                <View key={c.id} style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+                  <AppText variant="caption" color={colors.known} style={{ width: 34 }}>
+                    #{String(c.number).padStart(3, '0')}
+                  </AppText>
+                  <AppText variant="small" muted style={{ flex: 1 }} numberOfLines={2}>
+                    {plain(c.text)}
+                  </AppText>
+                  <Pressable
+                    disabled={added}
+                    hitSlop={8}
+                    accessibilityLabel="Tekrar destesine ekle"
+                    onPress={() => {
+                      haptic.light();
+                      requeue(c.id);
+                      setRequeued((r) => new Set(r).add(c.id));
+                    }}
+                    style={{
+                      paddingHorizontal: 10,
+                      paddingVertical: 6,
+                      borderRadius: 12,
+                      backgroundColor: added ? colors.reviewSoft : colors.surfaceAlt,
+                    }}>
+                    <AppText variant="caption" color={added ? colors.review : colors.text}>
+                      {added ? 'Eklendi' : '🔁'}
+                    </AppText>
+                  </Pressable>
+                </View>
+              );
+            })}
           </Surface>
         </Animated.View>
       )}

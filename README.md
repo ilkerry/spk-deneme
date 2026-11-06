@@ -33,7 +33,7 @@ src/
     study/[sectionId]  Kart çalışma ekranı (components/study: deste, kart, özet)
   components/          Ortak bileşenler (ui/ altında temel parçalar)
   data/                İçerik: content.ts + content/*.json (ders, bölüm, kart)
-  store/               Kullanıcı ayarları / ilerleme
+  store/               Kullanıcı ayarları ve ilerleme (cihazda saklanır)
   theme/               Renkler, yazı tipleri, açık/koyu tema
 ```
 
@@ -45,7 +45,7 @@ src/
 | 2 | PDF'teki 346 kartı veriye çevirme, ekranlara bağlama | ✅ |
 | 3 | Ana sayfa, ders ve bölüm ekranlarını gerçek veriye bağlama | ✅ (2. aşamayla birlikte) |
 | 4 | Kaydırmalı kart ekranı ve animasyonlar | ✅ |
-| 5 | Cihazda veritabanı (SQLite), ilerleme kaydı, tekrar destesi, bölüm özeti | |
+| 5 | Cihazda kayıt (AsyncStorage), ilerleme, tekrar destesi, otomatik tekrar | ✅ |
 | 6 | Seri, günlük hedef, istatistik, başarımlar, profil kaydı | |
 | 7 | Supabase + admin paneli, içerik senkronu | |
 | 8 | Cilalama, ikon, mağaza derlemesi (EAS) | |
@@ -62,3 +62,15 @@ python3 scripts/pdf_to_cards.py <dosya.pdf> ticaret-hukuku 1010 "Ticaret Hukuku"
 PDF'teki **kalın** yazılar kartta `**...**` olarak işaretlenir; boşluk doldurma modunda bu kısımlar gizlenir.
 Not: Betik bölüm emojilerini ve kimlikleri eklemez; `src/data/content/ticaret-hukuku.json` bu alanlarla
 birlikte elle güncellendi. 7. aşamada bu iş admin paneline taşınacak.
+
+## Kart durumları ve otomatik tekrar
+
+| Durum | Ne zaman |
+|---|---|
+| Yeni | Kart hiç kaydırılmadı |
+| Tekrar et | Sola kaydırıldı ya da 🔁 ile tekrar destesine gönderildi |
+| Biliyorum | Sağa kaydırıldı |
+| ⭐ Kalıcı ezber | Otomatik tekrarda da "Biliyorum" denildi |
+
+Profil → Otomatik tekrar **1 gün** ya da **3 gün** seçiliyse, "Biliyorum" denilen kart o kadar gün sonra
+ana sayfadaki **Bugünün tekrarları** destesine düşer. Orada da bilinirse kalıcı ezber olur, bilinmezse tekrar destesine döner.

@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 
 import { AppText, EmojiBubble, ProgressBar, Screen, Surface } from '@/components/ui';
 import { getLesson, lessonCardCount } from '@/data/content';
+import { lessonKnown, sectionStats, useProgress } from '@/store/progress';
 import { Radius, Spacing, useAppTheme, useTint } from '@/theme';
 
 export default function LessonScreen() {
@@ -11,6 +12,7 @@ export default function LessonScreen() {
   const lesson = getLesson(lessonId);
   const { colors } = useAppTheme();
   const tint = useTint(lesson?.color ?? 'primary');
+  const { cards } = useProgress();
 
   if (!lesson) {
     return (
@@ -22,6 +24,7 @@ export default function LessonScreen() {
 
   const sections = lesson.sections;
   const total = lessonCardCount(lesson);
+  const known = lessonKnown(lesson, cards);
 
   return (
     <Screen withTopInset={false}>
@@ -37,16 +40,19 @@ export default function LessonScreen() {
           {lesson.title}
         </AppText>
         <AppText variant="small" muted>
-          {sections.length} bölüm · {total} kart
+          {sections.length} bölüm · {total} kart · {known} ezber
         </AppText>
         <View style={{ alignSelf: 'stretch', marginTop: Spacing.sm }}>
-          <ProgressBar value={0} color={tint.strong} track={colors.surface} />
+          <ProgressBar value={known / total} color={tint.strong} track={colors.surface} />
         </View>
       </Surface>
 
       <AppText variant="title">Bölümler</AppText>
 
-      {sections.map((s) => (
+      {sections.map((s) => {
+        const st = sectionStats(s, cards);
+        const done = st.known === st.total;
+        return (
         <Pressable
           key={s.id}
           onPress={() => router.push({ pathname: '/section/[sectionId]', params: { sectionId: s.id } })}>
@@ -77,16 +83,19 @@ export default function LessonScreen() {
                 <View style={{ flex: 1, gap: 2 }}>
                   <AppText variant="bodyBold">{s.title}</AppText>
                   <AppText variant="caption" muted>
-                    0/{s.cards.length} ezberlendi
+                    {st.known}/{st.total} ezberlendi
+                    {st.review > 0 ? ` · ${st.review} tekrar` : ''}
+                    {done ? ' · Tamam ✅' : ''}
                   </AppText>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
               </View>
-              <ProgressBar value={0} color={tint.strong} height={8} />
+              <ProgressBar value={st.known / st.total} color={done ? colors.known : tint.strong} height={8} />
             </Surface>
           )}
         </Pressable>
-      ))}
+        );
+      })}
     </Screen>
   );
 }

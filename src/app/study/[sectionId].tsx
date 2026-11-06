@@ -8,27 +8,44 @@ import type { SwipeCardHandle, SwipeDirection } from '@/components/study/SwipeCa
 import { StudySummary } from '@/components/study/StudySummary';
 import { SwipeDeck } from '@/components/study/SwipeDeck';
 import { AppText, Button, ProgressBar } from '@/components/ui';
-import { getSection, type Card } from '@/data/content';
+import { getSection, lessons, type Card } from '@/data/content';
 import { haptic } from '@/lib/haptics';
+import { filterCards, useProgress, type StudyFilter, type SwipeUndo } from '@/store/progress';
 import { useSettings } from '@/store/settings';
 import { Radius, Spacing, useAppTheme } from '@/theme';
 
-type Result = { card: Card; dir: SwipeDirection };
+type Result = { card: Card; dir: SwipeDirection; undo: SwipeUndo };
+
+const allCards = lessons.flatMap((l) => l.sections.flatMap((s) => s.cards));
+
+const FILTER_TITLES: Record<StudyFilter, string> = {
+  all: '',
+  unlearned: 'Kaldığın yerden',
+  new: 'Yeni kartlar',
+  review: 'Tekrar destesi',
+  due: 'Bugünün tekrarları',
+};
 
 /**
  * Kart çalışma ekranı.
  * Sağa kaydır = Biliyorum, sola kaydır = Tekrar et. Deste bitince özet gösterilir.
- * Not: Sonuçlar şimdilik yalnızca bu oturumda tutuluyor; 5. aşamada cihaza kaydedilecek.
+ * Her kaydırma anında cihaza kaydedilir; geri alma kaydı da geri alır.
+ *
+ * Parametreler: sectionId (veya tüm bölümler için "due"), filter (all | unlearned | new | review | due)
  */
 export default function StudyScreen() {
-  const { sectionId } = useLocalSearchParams<{ sectionId: string }>();
+  const { sectionId, filter: filterParam } = useLocalSearchParams<{ sectionId: string; filter?: StudyFilter }>();
+  const filter: StudyFilter = filterParam ?? 'all';
   const section = getSection(sectionId);
+  const progress = useProgress();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { studyMode, update } = useSettings();
+  const { studyMode, autoReview, update } = useSettings();
 
-  const [round, setRound] = useState<Card[]>(() => section?.cards ?? []);
+  const source = section?.cards ?? (sectionId === 'due' ? allCards : []);
+  // Deste, ekran açıldığı andaki duruma göre bir kez seçilir (kaydırdıkça değişmez)
+  const [round, setRound] = useState<Card[]>(() => filterCards(source, filter, progress.cards));
   const [index, setIndex] = useState(0);
   const [results, setResults] = useState<Result[]>([]);
   const [enterFrom, setEnterFrom] = useState<SwipeDirection | undefined>();
@@ -42,10 +59,15 @@ export default function StudyScreen() {
   const known = useMemo(() => results.filter((r) => r.dir === 'right').map((r) => r.card), [results]);
   const review = useMemo(() => results.filter((r) => r.dir === 'left').map((r) => r.card), [results]);
 
-  if (!section || round.length === 0) {
+  const title = [section?.title, FILTER_TITLES[filter]].filter(Boolean).join(' · ');
+
+  if (round.length === 0) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background, gap: Spacing.lg }}>
-        <AppText variant="title">Bu bölümde kart yok</AppText>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background, gap: Spacing.lg, padding: Spacing.xl }}>
+        <AppText style={{ fontSize: 56, lineHeight: 68 }}>🎉</AppText>
+        <AppText variant="title" center>
+          Burada çalışılacak kart kalmadı
+        </AppText>
         <Button title="Geri dön" onPress={() => router.back()} />
       </View>
     );
@@ -54,20 +76,26 @@ export default function StudyScreen() {
   const handleSwiped = (card: Card, dir: SwipeDirection) => {
     busy.current = false;
     setEnterFrom(undefined);
-    setResults((r) => [...r, { card, dir }]);
+    const undo = progress.swipe(card.id, dir, autoReview);
+    setResults((r) => [...r, { card, dir, undo }]);
     setIndex((i) => i + 1);
   };
 
   const fling = (dir: SwipeDirection) => {
-    if (busy.current || finished) return;
+    if (busy.current || finished || !deckRef.current) return;
     busy.current = true;
-    deckRef.current?.fling(dir);
+    deckRef.current.fling(dir);
+    // Güvenlik: animasyon herhangi bir sebeple tamamlanmazsa kilit takılı kalmasın
+    setTimeout(() => {
+      busy.current = false;
+    }, 800);
   };
 
   const undo = () => {
     const last = results[results.length - 1];
     if (!last || busy.current) return;
     haptic.light();
+    progress.undo(last.undo);
     setResults((r) => r.slice(0, -1));
     setEnterFrom(last.dir);
     setIndex((i) => i - 1);
@@ -119,7 +147,7 @@ export default function StudyScreen() {
       {/* Bölüm adı ve anlık sayaçlar */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <AppText variant="small" muted numberOfLines={1} style={{ flex: 1 }}>
-          {section.title}
+          {title}
         </AppText>
         <View style={{ flexDirection: 'row', gap: Spacing.md }}>
           <AppText variant="small" color={colors.review}>
@@ -136,7 +164,7 @@ export default function StudyScreen() {
           known={known}
           review={review}
           onStudyReview={() => startRound(review)}
-          onRestart={() => startRound(section.cards)}
+          onRestart={() => startRound(round)}
           onClose={() => router.back()}
         />
       ) : (

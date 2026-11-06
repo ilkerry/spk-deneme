@@ -1,10 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { LessonCard } from '@/components/LessonCard';
 import { AppText, Button, Chip, EmojiBubble, ProgressBar, Screen, Surface } from '@/components/ui';
 import { lessons } from '@/data/content';
+import { isDue, isLearned, useDerivedStats, useProgress } from '@/store/progress';
 import { useSettings } from '@/store/settings';
 import { Spacing, useAppTheme } from '@/theme';
 
@@ -20,10 +21,19 @@ export default function HomeScreen() {
   const { colors } = useAppTheme();
   const { name, avatar, dailyGoal, autoReview } = useSettings();
 
-  // 5-6. aşamada cihazdaki gerçek veriden gelecek
-  const todayCount = 0;
-  const streak = 0;
-  const knownTotal = 0;
+  const { cards } = useProgress();
+  const { todayCount, streak, knownTotal, today } = useDerivedStats();
+
+  // Kaldığın yer: ezberlenmemiş kartı olan ilk bölüm
+  const nextSection = lessons
+    .flatMap((l) => l.sections)
+    .find((s) => s.cards.some((c) => !isLearned(cards[c.id])));
+
+  const dueCount =
+    autoReview === 'off'
+      ? 0
+      : lessons.flatMap((l) => l.sections.flatMap((s) => s.cards)).filter((c) => isDue(cards[c.id], today)).length;
+  const goalDone = todayCount >= dailyGoal;
 
   return (
     <Screen withTabBar>
@@ -52,32 +62,57 @@ export default function HomeScreen() {
               Günlük hedef
             </AppText>
             <AppText variant="title" color={colors.textOnPrimary}>
-              {todayCount} / {dailyGoal} kart
+              {todayCount} / {dailyGoal} kart{goalDone ? ' · Tamam!' : ''}
             </AppText>
           </View>
-          <AppText style={{ fontSize: 40, lineHeight: 48 }}>🎯</AppText>
+          <AppText style={{ fontSize: 40, lineHeight: 48 }}>{goalDone ? '🏆' : '🎯'}</AppText>
         </View>
         <ProgressBar value={todayCount / dailyGoal} color={colors.textOnPrimary} track="rgba(43,35,80,0.15)" />
-        <Button
-          title="Çalışmaya başla"
-          tone="neutral"
-          icon={<Ionicons name="play" size={18} color={colors.text} />}
-          onPress={() => router.push({ pathname: '/study/[sectionId]', params: { sectionId: lessons[0].sections[0].id } })}
-        />
+        {nextSection ? (
+          <View style={{ gap: 6 }}>
+            <Button
+              title={todayCount > 0 ? 'Kaldığın yerden devam et' : 'Çalışmaya başla'}
+              tone="neutral"
+              icon={<Ionicons name="play" size={18} color={colors.text} />}
+              onPress={() =>
+                router.push({ pathname: '/study/[sectionId]', params: { sectionId: nextSection.id, filter: 'unlearned' } })
+              }
+            />
+            <AppText variant="caption" color={colors.textOnPrimary} center style={{ opacity: 0.75 }} numberOfLines={1}>
+              Sıradaki: Bölüm {nextSection.order} · {nextSection.title}
+            </AppText>
+          </View>
+        ) : (
+          <AppText variant="bodyBold" color={colors.textOnPrimary} center>
+            Tüm kartları ezberledin! 🎉
+          </AppText>
+        )}
       </Surface>
 
       {/* Bugünün tekrarları */}
-      <Surface edge={colors.lilac} style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
-        <EmojiBubble emoji="🔁" bg={colors.lilacSoft} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <AppText variant="bodyBold">Bugünün tekrarları</AppText>
-          <AppText variant="small" muted>
-            {autoReview === 'off'
-              ? 'Otomatik tekrar kapalı. Profil’den açabilirsin.'
-              : 'Bugün tekrar edilecek kart yok 🎉'}
-          </AppText>
-        </View>
-      </Surface>
+      <Pressable
+        disabled={dueCount === 0}
+        onPress={() => router.push({ pathname: '/study/[sectionId]', params: { sectionId: 'due', filter: 'due' } })}>
+        {({ pressed }) => (
+          <Surface
+            edge={colors.lilac}
+            tint={dueCount > 0 ? colors.lilacSoft : undefined}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, transform: [{ scale: pressed ? 0.98 : 1 }] }}>
+            <EmojiBubble emoji="🔁" bg={dueCount > 0 ? colors.surface : colors.lilacSoft} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <AppText variant="bodyBold">Bugünün tekrarları</AppText>
+              <AppText variant="small" muted>
+                {autoReview === 'off'
+                  ? 'Otomatik tekrar kapalı. Profil’den açabilirsin.'
+                  : dueCount > 0
+                    ? `${dueCount} kart seni bekliyor`
+                    : `Bugün tekrar yok 🎉 (${autoReview} gün sonra tekrar)`}
+              </AppText>
+            </View>
+            {dueCount > 0 && <Ionicons name="chevron-forward" size={22} color={colors.lilac} />}
+          </Surface>
+        )}
+      </Pressable>
 
       {/* Dersler */}
       <View style={{ gap: Spacing.md }}>

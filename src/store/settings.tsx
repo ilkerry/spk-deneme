@@ -1,7 +1,11 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { AppState } from 'react-native';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+
+import { loadJSON, saveJSON, StorageKeys } from '@/lib/storage';
 
 export type StudyMode = 'cloze' | 'read';
 export type AutoReview = 'off' | '1' | '3';
+export type ThemePreference = 'system' | 'light' | 'dark';
 
 export type Settings = {
   name: string;
@@ -9,6 +13,7 @@ export type Settings = {
   studyMode: StudyMode;
   autoReview: AutoReview;
   dailyGoal: number;
+  theme: ThemePreference;
 };
 
 const defaults: Settings = {
@@ -17,6 +22,7 @@ const defaults: Settings = {
   studyMode: 'cloze',
   autoReview: 'off',
   dailyGoal: 30,
+  theme: 'system',
 };
 
 type SettingsContextValue = Settings & {
@@ -25,16 +31,43 @@ type SettingsContextValue = Settings & {
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
-/**
- * Kullanıcı ayarları.
- * Not: 1. aşamada yalnızca bellekte tutuluyor; 5-6. aşamada cihaza (SQLite) kaydedilecek.
- */
+/** Kullanıcı ayarları — yalnızca cihazda saklanır. */
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<Settings>(defaults);
+  const [settings, setSettings] = useState<Settings | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    loadJSON(StorageKeys.settings, defaults).then(setSettings);
+  }, []);
+
+  useEffect(() => {
+    if (!settings) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => saveJSON(StorageKeys.settings, settings), 300);
+  }, [settings]);
+
+  // Uygulama arka plana geçerken bekleyen kaydı hemen yaz (kapanırsa kaybolmasın)
+  const latest = useRef(settings);
+  latest.current = settings;
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active' && latest.current) {
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        saveJSON(StorageKeys.settings, latest.current);
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
   const value = useMemo(
-    () => ({ ...settings, update: (patch: Partial<Settings>) => setSettings((s) => ({ ...s, ...patch })) }),
+    () =>
+      settings
+        ? { ...settings, update: (patch: Partial<Settings>) => setSettings((s) => ({ ...(s ?? defaults), ...patch })) }
+        : null,
     [settings],
   );
+
+  if (!value) return null;
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }
 

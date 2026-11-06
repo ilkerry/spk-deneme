@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { ProgressProvider } from '@/store/progress';
 import { SettingsProvider } from '@/store/settings';
 import { AppThemeProvider, Fonts, useAppTheme } from '@/theme';
 
@@ -17,6 +18,11 @@ SplashScreen.preventAutoHideAsync();
 function RootNavigator() {
   const { colors, isDark } = useAppTheme();
   const base = isDark ? DarkTheme : DefaultTheme;
+
+  // Ayarlar ve ilerleme cihazdan yüklendikten sonra burası çizilir; açılış ekranını şimdi kapat
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
 
   return (
     <ThemeProvider
@@ -61,21 +67,17 @@ export default function RootLayout() {
     Nunito_900Black,
   });
 
-  const ready = fontsLoaded || !!fontError;
-
-  useEffect(() => {
-    if (ready) SplashScreen.hideAsync();
-  }, [ready]);
-
-  if (!ready) return null;
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AppThemeProvider>
-        <SettingsProvider>
-          <RootNavigator />
-        </SettingsProvider>
-      </AppThemeProvider>
+      <SettingsProvider>
+        <AppThemeProvider>
+          <ProgressProvider>
+            <RootNavigator />
+          </ProgressProvider>
+        </AppThemeProvider>
+      </SettingsProvider>
     </GestureHandlerRootView>
   );
 }

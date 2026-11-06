@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 
 import { AppText, EmojiBubble, ProgressBar, Surface } from '@/components/ui';
 import { lessonCardCount, type Lesson } from '@/data/content';
+import { lessonKnown, useProgress } from '@/store/progress';
 import { Spacing, useAppTheme, useTint } from '@/theme';
 
 export function LessonCard({ lesson }: { lesson: Lesson }) {
@@ -11,7 +12,8 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
   const tint = useTint(lesson.color);
   const sectionCount = lesson.sections.length;
   const cardCount = lessonCardCount(lesson);
-  const known = 0; // 5. aşamada gerçek ilerleme
+  const { cards } = useProgress();
+  const known = lessonKnown(lesson, cards);
 
   return (
     <Pressable
