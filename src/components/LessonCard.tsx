@@ -3,14 +3,14 @@ import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
 import { AppText, EmojiBubble, ProgressBar, Surface } from '@/components/ui';
-import { getSections, lessonCardCount, type Lesson } from '@/data/sample';
+import { lessonCardCount, type Lesson } from '@/data/content';
 import { Spacing, useAppTheme, useTint } from '@/theme';
 
 export function LessonCard({ lesson }: { lesson: Lesson }) {
   const { colors } = useAppTheme();
   const tint = useTint(lesson.color);
-  const sectionCount = getSections(lesson.id).length;
-  const cardCount = lessonCardCount(lesson.id);
+  const sectionCount = lesson.sections.length;
+  const cardCount = lessonCardCount(lesson);
   const known = 0; // 5. aşamada gerçek ilerleme
 
   return (

@@ -3,7 +3,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 
 import { AppText, Button, EmojiBubble, Screen, Surface } from '@/components/ui';
-import { getLesson, getSection } from '@/data/sample';
+import { getLesson, getSection } from '@/data/content';
 import { Spacing, useAppTheme } from '@/theme';
 
 function Counter({ value, label, color, bg }: { value: number; label: string; color: string; bg: string }) {
@@ -50,14 +50,14 @@ export default function SectionScreen() {
       </View>
 
       <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
-        <Counter value={section.cardCount} label="Yeni" color={colors.sky} bg={colors.skySoft} />
+        <Counter value={section.cards.length} label="Yeni" color={colors.sky} bg={colors.skySoft} />
         <Counter value={0} label="Tekrar et" color={colors.review} bg={colors.reviewSoft} />
         <Counter value={0} label="Biliyorum" color={colors.known} bg={colors.knownSoft} />
       </View>
 
       <View style={{ gap: Spacing.md }}>
         <Button
-          title={`Tümünü çalış (${section.cardCount})`}
+          title={`Tümünü çalış (${section.cards.length})`}
           icon={<Ionicons name="play" size={18} color={colors.textOnPrimary} />}
           onPress={start}
         />

@@ -6,13 +6,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RichCardText } from '@/components/RichCardText';
 import { AppText, Button, ProgressBar } from '@/components/ui';
-import { getSection, previewCards } from '@/data/sample';
+import { getSection } from '@/data/content';
 import { useSettings } from '@/store/settings';
 import { Radius, Spacing, useAppTheme } from '@/theme';
 
 /**
- * Kart çalışma ekranı — 1. aşama ÖNİZLEMESİ.
- * Sürükleyip fırlatma animasyonları 4. aşamada eklenecek; şimdilik butonlarla ilerleniyor.
+ * Kart çalışma ekranı (taslak).
+ * Bölümün gerçek kartlarını gösterir. Sürükleyip fırlatma animasyonları 4. aşamada eklenecek; şimdilik butonlarla ilerleniyor.
  */
 export default function StudyScreen() {
   const { sectionId } = useLocalSearchParams<{ sectionId: string }>();
@@ -21,12 +21,21 @@ export default function StudyScreen() {
   const insets = useSafeAreaInsets();
   const { studyMode, update } = useSettings();
 
-  const cards = previewCards;
+  const cards = section?.cards ?? [];
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
 
-  const card = cards[index % cards.length];
+  const card = cards[index % Math.max(1, cards.length)];
   const isCloze = studyMode === 'cloze';
+
+  if (!section || !card) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background, gap: Spacing.lg }}>
+        <AppText variant="title">Bu bölümde kart yok</AppText>
+        <Button title="Geri dön" onPress={() => router.back()} />
+      </View>
+    );
+  }
 
   const next = () => {
     setRevealed(false);
@@ -73,7 +82,7 @@ export default function StudyScreen() {
       </View>
 
       <AppText variant="small" muted center>
-        {section?.title}
+        {section.title}
       </AppText>
 
       {/* Kart destesi */}

@@ -4,15 +4,18 @@ import { Fonts, useAppTheme } from '@/theme';
 
 type Segment = { text: string; key: boolean };
 
+const MAX_UNBREAKABLE = 18;
+
 /** `**kalın**` işaretli metni parçalara ayırır. Kalın kısımlar = ezberlenecek anahtar bilgi. */
 export function parseCardText(raw: string): Segment[] {
   const parts = raw.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
-  return parts.map((p) =>
-    p.startsWith('**') && p.endsWith('**')
-      ? // Anahtar ifade satır sonunda bölünmesin diye boşluklar bölünmez boşluğa çevrilir
-        { text: p.slice(2, -2).replace(/ /g, ' '), key: true }
-      : { text: p, key: false },
-  );
+  return parts.map((p) => {
+    if (!(p.startsWith('**') && p.endsWith('**'))) return { text: p, key: false };
+    const text = p.slice(2, -2);
+    // Kısa anahtar ifadeler ("5 yıl") satır sonunda bölünmesin diye bölünmez boşlukla birleştirilir.
+    // Uzun ifadeler normal kelime aralarından alt satıra geçer (yoksa kelime ortasından bölünür).
+    return { text: text.length <= MAX_UNBREAKABLE ? text.replace(/ /g, '\u00A0') : text, key: true };
+  });
 }
 
 type RichCardTextProps = {

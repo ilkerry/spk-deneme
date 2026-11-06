@@ -3,7 +3,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
 import { AppText, EmojiBubble, ProgressBar, Screen, Surface } from '@/components/ui';
-import { getLesson, getSections, lessonCardCount } from '@/data/sample';
+import { getLesson, lessonCardCount } from '@/data/content';
 import { Radius, Spacing, useAppTheme, useTint } from '@/theme';
 
 export default function LessonScreen() {
@@ -20,8 +20,8 @@ export default function LessonScreen() {
     );
   }
 
-  const sections = getSections(lesson.id);
-  const total = lessonCardCount(lesson.id);
+  const sections = lesson.sections;
+  const total = lessonCardCount(lesson);
 
   return (
     <Screen withTopInset={false}>
@@ -77,7 +77,7 @@ export default function LessonScreen() {
                 <View style={{ flex: 1, gap: 2 }}>
                   <AppText variant="bodyBold">{s.title}</AppText>
                   <AppText variant="caption" muted>
-                    0/{s.cardCount} ezberlendi
+                    0/{s.cards.length} ezberlendi
                   </AppText>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />

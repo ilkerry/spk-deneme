@@ -4,7 +4,7 @@ import { View } from 'react-native';
 
 import { LessonCard } from '@/components/LessonCard';
 import { AppText, Button, Chip, EmojiBubble, ProgressBar, Screen, Surface } from '@/components/ui';
-import { lessons } from '@/data/sample';
+import { lessons } from '@/data/content';
 import { useSettings } from '@/store/settings';
 import { Spacing, useAppTheme } from '@/theme';
 
@@ -62,7 +62,7 @@ export default function HomeScreen() {
           title="Çalışmaya başla"
           tone="neutral"
           icon={<Ionicons name="play" size={18} color={colors.text} />}
-          onPress={() => router.push({ pathname: '/study/[sectionId]', params: { sectionId: 'th-1' } })}
+          onPress={() => router.push({ pathname: '/study/[sectionId]', params: { sectionId: lessons[0].sections[0].id } })}
         />
       </Surface>
 
