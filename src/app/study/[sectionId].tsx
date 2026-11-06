@@ -1,34 +1,48 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Pressable, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { RichCardText } from '@/components/RichCardText';
+import type { SwipeCardHandle, SwipeDirection } from '@/components/study/SwipeCard';
+import { StudySummary } from '@/components/study/StudySummary';
+import { SwipeDeck } from '@/components/study/SwipeDeck';
 import { AppText, Button, ProgressBar } from '@/components/ui';
-import { getSection } from '@/data/content';
+import { getSection, type Card } from '@/data/content';
+import { haptic } from '@/lib/haptics';
 import { useSettings } from '@/store/settings';
 import { Radius, Spacing, useAppTheme } from '@/theme';
 
+type Result = { card: Card; dir: SwipeDirection };
+
 /**
- * Kart çalışma ekranı (taslak).
- * Bölümün gerçek kartlarını gösterir. Sürükleyip fırlatma animasyonları 4. aşamada eklenecek; şimdilik butonlarla ilerleniyor.
+ * Kart çalışma ekranı.
+ * Sağa kaydır = Biliyorum, sola kaydır = Tekrar et. Deste bitince özet gösterilir.
+ * Not: Sonuçlar şimdilik yalnızca bu oturumda tutuluyor; 5. aşamada cihaza kaydedilecek.
  */
 export default function StudyScreen() {
   const { sectionId } = useLocalSearchParams<{ sectionId: string }>();
   const section = getSection(sectionId);
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { studyMode, update } = useSettings();
 
-  const cards = section?.cards ?? [];
+  const [round, setRound] = useState<Card[]>(() => section?.cards ?? []);
   const [index, setIndex] = useState(0);
-  const [revealed, setRevealed] = useState(false);
+  const [results, setResults] = useState<Result[]>([]);
+  const [enterFrom, setEnterFrom] = useState<SwipeDirection | undefined>();
+  const deckRef = useRef<SwipeCardHandle | null>(null);
+  const busy = useRef(false);
 
-  const card = cards[index % Math.max(1, cards.length)];
+  const cardWidth = Math.min(width - 40, 480);
   const isCloze = studyMode === 'cloze';
+  const finished = index >= round.length;
 
-  if (!section || !card) {
+  const known = useMemo(() => results.filter((r) => r.dir === 'right').map((r) => r.card), [results]);
+  const review = useMemo(() => results.filter((r) => r.dir === 'left').map((r) => r.card), [results]);
+
+  if (!section || round.length === 0) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background, gap: Spacing.lg }}>
         <AppText variant="title">Bu bölümde kart yok</AppText>
@@ -37,9 +51,33 @@ export default function StudyScreen() {
     );
   }
 
-  const next = () => {
-    setRevealed(false);
+  const handleSwiped = (card: Card, dir: SwipeDirection) => {
+    busy.current = false;
+    setEnterFrom(undefined);
+    setResults((r) => [...r, { card, dir }]);
     setIndex((i) => i + 1);
+  };
+
+  const fling = (dir: SwipeDirection) => {
+    if (busy.current || finished) return;
+    busy.current = true;
+    deckRef.current?.fling(dir);
+  };
+
+  const undo = () => {
+    const last = results[results.length - 1];
+    if (!last || busy.current) return;
+    haptic.light();
+    setResults((r) => r.slice(0, -1));
+    setEnterFrom(last.dir);
+    setIndex((i) => i - 1);
+  };
+
+  const startRound = (cards: Card[]) => {
+    setRound(cards);
+    setResults([]);
+    setEnterFrom(undefined);
+    setIndex(0);
   };
 
   return (
@@ -50,7 +88,7 @@ export default function StudyScreen() {
         paddingTop: insets.top + Spacing.sm,
         paddingBottom: insets.bottom + Spacing.lg,
         paddingHorizontal: Spacing.lg + 4,
-        gap: Spacing.lg,
+        gap: Spacing.md,
       }}>
       {/* Üst çubuk: kapat · ilerleme · mod */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
@@ -58,18 +96,15 @@ export default function StudyScreen() {
           <Ionicons name="close" size={28} color={colors.textMuted} />
         </Pressable>
         <View style={{ flex: 1 }}>
-          <ProgressBar value={((index % cards.length) + 1) / cards.length} />
+          <ProgressBar value={index / round.length} />
         </View>
         <Pressable
           onPress={() => {
-            setRevealed(false);
+            haptic.tap();
             update({ studyMode: isCloze ? 'read' : 'cloze' });
           }}
           accessibilityLabel="Çalışma modunu değiştir"
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 4,
             backgroundColor: colors.surface,
             borderRadius: Radius.pill,
             borderWidth: 2,
@@ -81,105 +116,82 @@ export default function StudyScreen() {
         </Pressable>
       </View>
 
-      <AppText variant="small" muted center>
-        {section.title}
-      </AppText>
-
-      {/* Kart destesi */}
-      <View style={{ flex: 1, justifyContent: 'center' }}>
-        <View style={{ maxWidth: 480, width: '100%', alignSelf: 'center', flex: 1, maxHeight: 520 }}>
-          {/* Arkadaki kartlar (deste görünümü) */}
-          <View
-            style={{
-              position: 'absolute',
-              top: 22,
-              left: 22,
-              right: 22,
-              bottom: -22,
-              backgroundColor: colors.lilacSoft,
-              borderRadius: Radius.xl,
-              borderWidth: 2,
-              borderColor: colors.border,
-            }}
-          />
-          <View
-            style={{
-              position: 'absolute',
-              top: 11,
-              left: 11,
-              right: 11,
-              bottom: -11,
-              backgroundColor: colors.skySoft,
-              borderRadius: Radius.xl,
-              borderWidth: 2,
-              borderColor: colors.border,
-            }}
-          />
-
-          {/* Ön kart */}
-          <Pressable
-            style={{ flex: 1 }}
-            onPress={() => isCloze && setRevealed((r) => !r)}
-            accessibilityHint={isCloze ? 'Cevabı göstermek için dokun' : undefined}>
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: colors.surface,
-                borderRadius: Radius.xl,
-                borderWidth: 2,
-                borderBottomWidth: 6,
-                borderColor: colors.border,
-                padding: Spacing.xl,
-                justifyContent: 'space-between',
-              }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <View
-                  style={{
-                    backgroundColor: colors.primary,
-                    borderRadius: Radius.pill,
-                    paddingHorizontal: 12,
-                    paddingVertical: 4,
-                  }}>
-                  <AppText variant="caption" color={colors.textOnPrimary}>
-                    #{String(card.number).padStart(3, '0')}
-                  </AppText>
-                </View>
-                <AppText variant="caption" muted>
-                  {(index % cards.length) + 1} / {cards.length}
-                </AppText>
-              </View>
-
-              <RichCardText text={card.text} hideKeys={isCloze && !revealed} />
-
-              <AppText variant="small" muted center>
-                {isCloze
-                  ? revealed
-                    ? 'Şimdi sağa ya da sola kaydır'
-                    : '👆 Cevabı görmek için dokun'
-                  : 'Okuduysan sağa ya da sola kaydır'}
-              </AppText>
-            </View>
-          </Pressable>
+      {/* Bölüm adı ve anlık sayaçlar */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <AppText variant="small" muted numberOfLines={1} style={{ flex: 1 }}>
+          {section.title}
+        </AppText>
+        <View style={{ flexDirection: 'row', gap: Spacing.md }}>
+          <AppText variant="small" color={colors.review}>
+            ↺ {review.length}
+          </AppText>
+          <AppText variant="small" color={colors.known}>
+            ✓ {known.length}
+          </AppText>
         </View>
       </View>
 
-      {/* Butonlar (4. aşamada kaydırma hareketiyle birlikte çalışacak) */}
-      <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.lg }}>
-        <Button
-          title="Tekrar et"
-          tone="review"
-          style={{ flex: 1 }}
-          icon={<Ionicons name="arrow-back" size={18} color="#FFF" />}
-          onPress={next}
+      {finished ? (
+        <StudySummary
+          known={known}
+          review={review}
+          onStudyReview={() => startRound(review)}
+          onRestart={() => startRound(section.cards)}
+          onClose={() => router.back()}
         />
-        <Button
-          title="Biliyorum"
-          tone="known"
-          style={{ flex: 1 }}
-          icon={<Ionicons name="checkmark" size={20} color="#FFF" />}
-          onPress={next}
-        />
-      </View>
+      ) : (
+        <>
+          <View style={{ flex: 1, width: cardWidth, alignSelf: 'center', marginTop: Spacing.sm, marginBottom: Spacing.xl }}>
+            <SwipeDeck
+              cards={round}
+              index={index}
+              mode={studyMode}
+              width={cardWidth}
+              enterFrom={enterFrom}
+              deckRef={deckRef}
+              onSwiped={handleSwiped}
+            />
+          </View>
+
+          {/* Alt butonlar */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+            <Button
+              title="Tekrar et"
+              tone="review"
+              compact
+              style={{ flex: 1 }}
+              icon={<Ionicons name="arrow-back" size={18} color="#FFF" />}
+              onPress={() => fling('left')}
+            />
+            <Pressable
+              onPress={undo}
+              disabled={results.length === 0}
+              accessibilityLabel="Geri al"
+              hitSlop={8}
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 24,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: colors.surface,
+                borderWidth: 2,
+                borderColor: colors.border,
+                opacity: results.length === 0 ? 0.4 : 1,
+              }}>
+              <Ionicons name="arrow-undo" size={20} color={colors.textMuted} />
+            </Pressable>
+            <Button
+              title="Biliyorum"
+              tone="known"
+              compact
+              style={{ flex: 1 }}
+              icon={<Ionicons name="checkmark" size={20} color="#FFF" />}
+              onPress={() => fling('right')}
+            />
+          </View>
+        </>
+      )}
     </View>
   );
 }

@@ -14,10 +14,12 @@ type ButtonProps = {
   icon?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   disabled?: boolean;
+  /** Dar alanlar için daha az yatay boşluk */
+  compact?: boolean;
 };
 
 /** Basınca aşağı çöken, kalın kenarlı oyunsu buton. */
-export function Button({ title, onPress, tone = 'primary', icon, style, disabled }: ButtonProps) {
+export function Button({ title, onPress, tone = 'primary', icon, style, disabled, compact }: ButtonProps) {
   const { colors } = useAppTheme();
 
   const tones: Record<Tone, { bg: string; edge: string; fg: string }> = {
@@ -45,15 +47,15 @@ export function Button({ title, onPress, tone = 'primary', icon, style, disabled
             borderColor: t.edge,
             marginTop: pressed ? 4 : 0,
             paddingVertical: Spacing.md + 2,
-            paddingHorizontal: Spacing.xl,
+            paddingHorizontal: compact ? Spacing.sm : Spacing.xl,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: Spacing.sm,
+            gap: compact ? 6 : Spacing.sm,
             opacity: disabled ? 0.5 : 1,
           }}>
           {icon}
-          <AppText variant="bodyBold" color={t.fg}>
+          <AppText variant="bodyBold" color={t.fg} numberOfLines={1}>
             {title}
           </AppText>
         </View>

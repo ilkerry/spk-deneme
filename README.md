@@ -30,7 +30,7 @@ src/
     (tabs)/            Alt sekmeler: Ana Sayfa, İstatistik, Başarımlar, Profil
     lesson/[lessonId]  Ders → bölüm listesi
     section/[sectionId] Bölüm detayı
-    study/[sectionId]  Kart çalışma ekranı
+    study/[sectionId]  Kart çalışma ekranı (components/study: deste, kart, özet)
   components/          Ortak bileşenler (ui/ altında temel parçalar)
   data/                İçerik: content.ts + content/*.json (ders, bölüm, kart)
   store/               Kullanıcı ayarları / ilerleme
@@ -43,8 +43,8 @@ src/
 |---|---|---|
 | 1 | Proje iskeleti, tema, gezinme, ekran taslakları | ✅ |
 | 2 | PDF'teki 346 kartı veriye çevirme, ekranlara bağlama | ✅ |
-| 3 | Ana sayfa, ders ve bölüm ekranlarını gerçek veriye bağlama | ⏳ |
-| 4 | Kaydırmalı kart ekranı ve animasyonlar | |
+| 3 | Ana sayfa, ders ve bölüm ekranlarını gerçek veriye bağlama | ✅ (2. aşamayla birlikte) |
+| 4 | Kaydırmalı kart ekranı ve animasyonlar | ✅ |
 | 5 | Cihazda veritabanı (SQLite), ilerleme kaydı, tekrar destesi, bölüm özeti | |
 | 6 | Seri, günlük hedef, istatistik, başarımlar, profil kaydı | |
 | 7 | Supabase + admin paneli, içerik senkronu | |
