@@ -1,5 +1,5 @@
 -- =====================================================================
--- Hapla — Supabase veritabanı şeması
+-- LisansQuiz — Supabase veritabanı şeması
 -- Supabase panelinde: SQL Editor → New query → bu dosyanın tamamını yapıştır → Run
 -- Tekrar çalıştırmak güvenlidir (var olanı bozmaz).
 -- =====================================================================

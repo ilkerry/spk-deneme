@@ -14,6 +14,8 @@ export type Settings = {
   autoReview: AutoReview;
   dailyGoal: number;
   theme: ThemePreference;
+  /** İlk açılış tanıtımı görüldü mü */
+  onboarded: boolean;
 };
 
 const defaults: Settings = {
@@ -23,6 +25,7 @@ const defaults: Settings = {
   autoReview: 'off',
   dailyGoal: 30,
   theme: 'system',
+  onboarded: false,
 };
 
 type SettingsContextValue = Settings & {

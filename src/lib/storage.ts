@@ -21,6 +21,8 @@ export async function saveJSON(key: string, value: unknown) {
   }
 }
 
+// Not: anahtarlar uygulamanın eski çalışma adı "Hapla"dan kalma. Değiştirilirse
+// kullanıcıların cihazdaki ilerlemesi okunamaz; bu yüzden olduğu gibi bırakıldı.
 export const StorageKeys = {
   settings: 'hapla.settings.v1',
   progress: 'hapla.progress.v1',

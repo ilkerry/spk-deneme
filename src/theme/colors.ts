@@ -1,5 +1,5 @@
 /**
- * Hapla renk paleti.
+ * LisansQuiz renk paleti.
  * Ana renk sıcak turuncu; yazı ve kontrast için derin mor-lacivert.
  * "Biliyorum" = nane yeşili, "Tekrar et" = gül kırmızısı.
  */

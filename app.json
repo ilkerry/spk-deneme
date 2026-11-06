@@ -1,15 +1,20 @@
 {
   "expo": {
-    "name": "Hapla",
-    "slug": "hapla",
-    "version": "0.1.0",
+    "name": "LisansQuiz",
+    "slug": "lisansquiz",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "hapla",
+    "scheme": "lisansquiz",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.hapla.app"
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.lisansquiz.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +24,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.hapla.app"
+      "package": "com.lisansquiz.app",
+      "versionCode": 1
     },
     "web": {
       "output": "single",
@@ -32,13 +38,18 @@
         {
           "backgroundColor": "#FF9A2E",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 220,
+          "dark": {
+            "backgroundColor": "#17132B",
+            "image": "./assets/images/splash-icon.png"
+          }
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "description": "SPK lisans sınavlarının hap bilgilerini kaydırmalı kartlarla ezberle."
   }
 }

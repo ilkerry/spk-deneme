@@ -117,7 +117,7 @@ export function Dashboard({ email }: { email: string }) {
   return (
     <div className="app">
       <header>
-        <h1>🐝 Hapla Admin</h1>
+        <h1>🎓 LisansQuiz Admin</h1>
         <div className="row">
           <span className="muted small">{email}</span>
           <button className="ghost small" onClick={() => supabase.auth.signOut()}>

@@ -1,4 +1,4 @@
-# Hapla 🐝 — SPK hap ezber kartları
+# LisansQuiz — SPK lisans sınavı ezber kartları
 
 SPK lisanslama sınavları için kaydırmalı ezber kartı uygulaması (iOS + Android, Expo / React Native).
 
@@ -31,6 +31,7 @@ src/
     lesson/[lessonId]  Ders → bölüm listesi
     section/[sectionId] Bölüm detayı
     study/[sectionId]  Kart çalışma ekranı (components/study: deste, kart, özet)
+    onboarding         İlk açılış tanıtımı
   components/          Ortak bileşenler (ui/ altında temel parçalar)
   data/                İçerik: content.ts + content/*.json (ders, bölüm, kart)
   store/               Ayarlar, ilerleme (cihazda), içerik senkronu
@@ -50,7 +51,7 @@ supabase/              Veritabanı şeması (schema.sql) ve ilk içerik (seed.sq
 | 5 | Cihazda kayıt (AsyncStorage), ilerleme, tekrar destesi, otomatik tekrar | ✅ |
 | 6 | İstatistik, başarımlar, rozet kutlaması (konfeti) | ✅ |
 | 7 | Supabase + admin paneli, içerik senkronu | ✅ (Supabase hesabı bağlanınca devreye girer) |
-| 8 | Cilalama, ikon, mağaza derlemesi (EAS) | |
+| 8 | İsim (LisansQuiz), ikon, açılış ekranı, ilk açılış tanıtımı, EAS ayarları | ✅ |
 
 ## PDF'ten kart üretmek
 
@@ -127,3 +128,33 @@ npx expo start -c
 
 İçerik her açılışta ve uygulama öne geldiğinde tazelenir; *Profil → İçerik → Şimdi güncelle*
 ile elle de çekilebilir.
+
+## İkon ve açılış ekranı
+
+İkonlar `assets/source/make-icons.js` ile SVG'den üretilir (renkleri/çizimi oradan değiştirip yeniden çalıştır):
+
+```bash
+node assets/source/make-icons.js assets/images
+```
+
+Not: Expo Go kendi ikonunu gösterir; uygulamanın ikonu ve açılış ekranı ancak gerçek derlemede (EAS) görünür.
+
+## Mağaza derlemesi (EAS)
+
+`eas.json` içinde üç profil var: `development`, `preview` (telefona doğrudan kurulan deneme sürümü; Android'de APK)
+ve `production` (mağaza). Uygulama kimliği: **com.lisansquiz.app** (mağazaya çıktıktan sonra değiştirilemez).
+
+1. **Supabase ayarlarını EAS'e tanıt** — `.env` GitHub'a gönderilmediği için bulut derlemesi onu göremez.
+   Bunu yapmazsan derlenen uygulama sunucuya bağlanmaz, içindeki kartlarla çalışır:
+   ```bash
+   npx eas-cli@latest env:create --name EXPO_PUBLIC_SUPABASE_URL --value https://PROJE.supabase.co --environment preview --environment production --visibility plaintext
+   ```
+   ```bash
+   npx eas-cli@latest env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value ANAHTAR --environment preview --environment production --visibility plaintext
+   ```
+2. **Android deneme sürümü (APK):**
+   ```bash
+   npx eas-cli@latest build --platform android --profile preview
+   ```
+3. **Mağaza sürümü:** `--profile production` ile derle, `npx eas-cli@latest submit` ile gönder.
+   iOS için Apple Developer hesabı (yıllık ücretli), Android için Google Play Console hesabı (tek seferlik ücret) gerekir.

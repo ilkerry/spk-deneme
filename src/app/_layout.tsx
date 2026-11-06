@@ -50,6 +50,7 @@ function RootNavigator() {
           contentStyle: { backgroundColor: colors.background },
         }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
         <Stack.Screen name="lesson/[lessonId]" options={{ title: '' }} />
         <Stack.Screen name="section/[sectionId]" options={{ title: '' }} />
         <Stack.Screen

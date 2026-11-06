@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
 import { LessonCard } from '@/components/LessonCard';
@@ -19,7 +19,7 @@ function greeting() {
 
 export default function HomeScreen() {
   const { colors } = useAppTheme();
-  const { name, avatar, dailyGoal, autoReview } = useSettings();
+  const { name, avatar, dailyGoal, autoReview, onboarded } = useSettings();
 
   const { lessons } = useContent();
   const { cards, achievements: unlocked } = useProgress();
@@ -35,6 +35,9 @@ export default function HomeScreen() {
       ? 0
       : lessons.flatMap((l) => l.sections.flatMap((s) => s.cards)).filter((c) => isDue(cards[c.id], today)).length;
   const goalDone = todayCount >= dailyGoal;
+
+  // İlk açılışta tanıtım ekranı
+  if (!onboarded) return <Redirect href="/onboarding" />;
 
   return (
     <Screen withTabBar>

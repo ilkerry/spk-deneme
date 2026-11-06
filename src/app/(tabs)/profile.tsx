@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 
@@ -173,9 +174,10 @@ export default function ProfileScreen() {
         )}
       </Surface>
 
+      <Button title="Tanıtımı tekrar göster" tone="neutral" onPress={() => router.push('/onboarding')} />
       <Button title="İlerlemeyi sıfırla" tone="neutral" onPress={onReset} />
       <AppText variant="caption" muted center>
-        Hapla · sürüm 0.7
+        LisansQuiz · sürüm 1.0
       </AppText>
     </Screen>
   );

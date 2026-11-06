@@ -54,7 +54,7 @@ function Setup() {
   return (
     <div className="center">
       <div className="card narrow">
-        <h2>🐝 Hapla Admin — kurulum gerekli</h2>
+        <h2>🎓 LisansQuiz Admin — kurulum gerekli</h2>
         <p className="muted">
           Proje klasöründe <code>.env</code> dosyası bulunamadı ya da Supabase bilgileri eksik. <code>.env.example</code>{' '}
           dosyasını <code>.env</code> adıyla kopyalayıp Supabase proje adresini ve anon anahtarını yazın, sonra paneli
@@ -83,7 +83,7 @@ function Login() {
   return (
     <div className="center">
       <form className="card narrow" onSubmit={submit}>
-        <h2>🐝 Hapla Admin</h2>
+        <h2>🎓 LisansQuiz Admin</h2>
         <p className="muted">Kart içeriğini yönetmek için giriş yapın.</p>
         <label>
           E-posta
