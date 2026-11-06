@@ -86,6 +86,13 @@ create policy "herkes okur" on public.cards for select using (true);
 drop policy if exists "admin yazar" on public.cards;
 create policy "admin yazar" on public.cards for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
+-- Erişim izinleri (projede "Automatically expose new tables" kapalı olsa da çalışsın diye açıkça veriliyor).
+-- Satır düzeyinde kim neyi yapabilir, yukarıdaki RLS kuralları belirler.
+grant usage on schema public to anon, authenticated;
+grant select on public.lessons, public.sections, public.cards to anon, authenticated;
+grant insert, update, delete on public.lessons, public.sections, public.cards to authenticated;
+revoke all on public.admins from anon, authenticated;
+
 -- Admin panelinin "ben admin miyim?" kontrolü için
 grant execute on function public.is_admin() to authenticated;
 
