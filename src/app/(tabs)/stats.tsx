@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { AppText, EmojiBubble, ProgressBar, Screen, Surface } from '@/components/ui';
-import { lessonCardCount, lessons } from '@/data/content';
+import { lessonCardCount } from '@/data/content';
+import { useContent } from '@/store/content';
 import { addDays, dayKey, longestStreak } from '@/lib/dates';
 import { sectionStats, useDerivedStats, useProgress, type DayLog } from '@/store/progress';
 import { useSettings } from '@/store/settings';
@@ -197,6 +198,7 @@ function ActivityCalendar({ days, today, goal }: { days: Record<string, DayLog>;
 
 export default function StatsScreen() {
   const { colors } = useAppTheme();
+  const { lessons } = useContent();
   const { cards, days } = useProgress();
   const { dailyGoal } = useSettings();
   const { streak, knownTotal, masteredTotal } = useDerivedStats();
@@ -233,7 +235,7 @@ export default function StatsScreen() {
       <Surface style={{ gap: Spacing.lg }}>
         <AppText variant="bodyBold">Derslere göre</AppText>
         {lessons
-          .filter((l) => !l.comingSoon)
+          .filter((l) => !l.comingSoon && lessonCardCount(l) > 0)
           .map((l) => {
             const total = lessonCardCount(l);
             const agg = l.sections.reduce(

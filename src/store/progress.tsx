@@ -6,6 +6,7 @@ import { addDays, currentStreak, dayKey } from '@/lib/dates';
 import { loadJSON, saveJSON, StorageKeys } from '@/lib/storage';
 
 import { evaluateAchievements } from './achievements';
+import { useContent } from './content';
 import { useSettings, type AutoReview } from './settings';
 
 /**
@@ -72,6 +73,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<ProgressData | null>(null);
   const [unlockQueue, setUnlockQueue] = useState<string[]>([]);
   const { dailyGoal } = useSettings();
+  const { lessons } = useContent();
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Geri alma bilgisini anında hesaplayabilmek için verinin güncel kopyası
   const dataRef = useRef<ProgressData>(empty);
@@ -84,7 +86,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // Her değişiklikten sonra yeni kazanılan başarımları kontrol et
   useEffect(() => {
     if (!data) return;
-    const earned = evaluateAchievements(data, dailyGoal).filter((id) => !data.achievements[id]);
+    const earned = evaluateAchievements(data, dailyGoal, lessons).filter((id) => !data.achievements[id]);
     if (earned.length === 0) return;
     const now = new Date().toISOString();
     setData((d) => {
@@ -94,7 +96,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       return { ...d, achievements };
     });
     setUnlockQueue((q) => [...q, ...earned.filter((id) => !q.includes(id))]);
-  }, [data, dailyGoal]);
+  }, [data, dailyGoal, lessons]);
 
   // Değişiklikleri kısa bir gecikmeyle diske yaz
   useEffect(() => {

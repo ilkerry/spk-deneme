@@ -4,11 +4,13 @@ import { Pressable, View } from 'react-native';
 
 import { AppText, EmojiBubble, ProgressBar, Screen, Surface } from '@/components/ui';
 import { getLesson, lessonCardCount } from '@/data/content';
+import { useContent } from '@/store/content';
 import { lessonKnown, sectionStats, useProgress } from '@/store/progress';
 import { Radius, Spacing, useAppTheme, useTint } from '@/theme';
 
 export default function LessonScreen() {
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
+  useContent(); // içerik değişince yeniden çiz
   const lesson = getLesson(lessonId);
   const { colors } = useAppTheme();
   const tint = useTint(lesson?.color ?? 'primary');
@@ -43,7 +45,7 @@ export default function LessonScreen() {
           {sections.length} bölüm · {total} kart · {known} ezber
         </AppText>
         <View style={{ alignSelf: 'stretch', marginTop: Spacing.sm }}>
-          <ProgressBar value={known / total} color={tint.strong} track={colors.surface} />
+          <ProgressBar value={total ? known / total : 0} color={tint.strong} track={colors.surface} />
         </View>
       </Surface>
 
@@ -51,7 +53,7 @@ export default function LessonScreen() {
 
       {sections.map((s) => {
         const st = sectionStats(s, cards);
-        const done = st.known === st.total;
+        const done = st.total > 0 && st.known === st.total;
         return (
         <Pressable
           key={s.id}
@@ -90,7 +92,7 @@ export default function LessonScreen() {
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
               </View>
-              <ProgressBar value={st.known / st.total} color={done ? colors.known : tint.strong} height={8} />
+              <ProgressBar value={st.total ? st.known / st.total : 0} color={done ? colors.known : tint.strong} height={8} />
             </Surface>
           )}
         </Pressable>

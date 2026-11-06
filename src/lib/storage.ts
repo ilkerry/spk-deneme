@@ -24,4 +24,5 @@ export async function saveJSON(key: string, value: unknown) {
 export const StorageKeys = {
   settings: 'hapla.settings.v1',
   progress: 'hapla.progress.v1',
+  content: 'hapla.content.v1',
 } as const;

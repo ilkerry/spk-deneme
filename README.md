@@ -33,7 +33,9 @@ src/
     study/[sectionId]  Kart çalışma ekranı (components/study: deste, kart, özet)
   components/          Ortak bileşenler (ui/ altında temel parçalar)
   data/                İçerik: content.ts + content/*.json (ders, bölüm, kart)
-  store/               Kullanıcı ayarları ve ilerleme (cihazda saklanır)
+  store/               Ayarlar, ilerleme (cihazda), içerik senkronu
+admin/                 Admin paneli (Vite + React, bilgisayarda çalışır)
+supabase/              Veritabanı şeması (schema.sql) ve ilk içerik (seed.sql)
   theme/               Renkler, yazı tipleri, açık/koyu tema
 ```
 
@@ -47,7 +49,7 @@ src/
 | 4 | Kaydırmalı kart ekranı ve animasyonlar | ✅ |
 | 5 | Cihazda kayıt (AsyncStorage), ilerleme, tekrar destesi, otomatik tekrar | ✅ |
 | 6 | İstatistik, başarımlar, rozet kutlaması (konfeti) | ✅ |
-| 7 | Supabase + admin paneli, içerik senkronu | |
+| 7 | Supabase + admin paneli, içerik senkronu | ✅ (Supabase hesabı bağlanınca devreye girer) |
 | 8 | Cilalama, ikon, mağaza derlemesi (EAS) | |
 
 ## PDF'ten kart üretmek
@@ -74,3 +76,54 @@ birlikte elle güncellendi. 7. aşamada bu iş admin paneline taşınacak.
 
 Profil → Otomatik tekrar **1 gün** ya da **3 gün** seçiliyse, "Biliyorum" denilen kart o kadar gün sonra
 ana sayfadaki **Bugünün tekrarları** destesine düşer. Orada da bilinirse kalıcı ezber olur, bilinmezse tekrar destesine döner.
+
+## Admin paneli ve Supabase kurulumu
+
+Kartlar admin panelinden eklenip düzenlenir; uygulama içeriği açılışta Supabase'den çekip
+cihazda saklar (internet yoksa son kopyayla çalışır). Supabase ayarlanmadıysa uygulama
+içindeki kartlarla çalışmaya devam eder. **Kullanıcı verisi (ilerleme, profil) Supabase'e gitmez.**
+
+### Bir kerelik kurulum
+
+1. **Proje aç:** supabase.com → *New project*. Bölge olarak *Frankfurt (eu-central-1)* seçilebilir.
+2. **Tabloları kur:** Sol menü *SQL Editor* → *New query* → `supabase/schema.sql` dosyasının
+   tamamını yapıştır → *Run*.
+3. **Kartları yükle:** Yine *SQL Editor* → `supabase/seed.sql` dosyasının tamamını yapıştır → *Run*
+   (Ticaret Hukuku: 14 bölüm, 346 kart). Bunu yalnızca ilk kurulumda yap; sonradan çalıştırırsan
+   paneldeki değişikliklerin bu kartlar için ezilir.
+4. **Admin hesabını aç:** *Authentication → Users → Add user → Create new user*.
+   E-posta ve şifre yaz, *Auto Confirm User* işaretli olsun.
+5. **Hesabı admin yap:** *SQL Editor*'da (adresi kendi e-postanla değiştir):
+   ```sql
+   insert into public.admins (email) values ('senin@epostan.com');
+   ```
+6. **(Önerilir) Yeni kayıtları kapat:** *Authentication → Sign In / Providers* →
+   *Allow new users to sign up* kapalı.
+7. **Anahtarları al:** *Project Settings → API Keys* (ya da üstteki *Connect* düğmesi):
+   *Project URL* ve *anon public* (ya da *publishable*) anahtar.
+8. **`.env` dosyası:** Proje klasöründe `.env.example` dosyasını `.env` adıyla kopyala ve
+   iki değeri yaz. (Bu dosya GitHub'a gönderilmez.)
+
+### Paneli açmak
+
+```bash
+npm run admin
+```
+
+Tarayıcıda `http://localhost:5199` açılır; 4. adımdaki e-posta ve şifreyle giriş yap.
+
+- Kart metninde `**iki yıldız**` arasındaki kısım anahtar bilgidir (boşluk doldurmada gizlenir).
+  Metni seçip **Kalın yap** (Ctrl+B) ile işaretleyebilirsin; önizleme anında görünür.
+- Kartı silmeden geçici olarak gizlemek için **Açık/Pasif** kutusunu kullan.
+- Yeni bir PDF'i `scripts/pdf_to_cards.py` ile JSON'a çevirip panelde **⬆ JSON** ile tek seferde yükleyebilirsin.
+
+### Uygulamada görmek
+
+`.env` dosyasını ekledikten sonra uygulamayı önbelleği temizleyerek başlat:
+
+```bash
+npx expo start -c
+```
+
+İçerik her açılışta ve uygulama öne geldiğinde tazelenir; *Profil → İçerik → Şimdi güncelle*
+ile elle de çekilebilir.

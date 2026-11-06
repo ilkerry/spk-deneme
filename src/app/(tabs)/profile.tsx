@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 
 import { AppText, Button, EmojiBubble, Screen, Segmented, Surface } from '@/components/ui';
 import { confirm } from '@/lib/confirm';
 import { haptic } from '@/lib/haptics';
+import { useContent } from '@/store/content';
 import { useProgress } from '@/store/progress';
 import { useSettings, type AutoReview, type StudyMode } from '@/store/settings';
 import { Fonts, Radius, Spacing, useAppTheme, type ThemePreference } from '@/theme';
@@ -29,6 +31,14 @@ export default function ProfileScreen() {
   const { colors, preference, setPreference } = useAppTheme();
   const s = useSettings();
   const { reset } = useProgress();
+  const content = useContent();
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+
+  const onSync = async () => {
+    setSyncMsg('Güncelleniyor…');
+    const ok = await content.refresh();
+    setSyncMsg(ok ? 'İçerik güncellendi ✓' : 'Sunucuya ulaşılamadı; mevcut içerikle devam ediliyor.');
+  };
 
   const onReset = async () => {
     const ok = await confirm(
@@ -144,9 +154,28 @@ export default function ProfileScreen() {
         </SettingBlock>
       </Surface>
 
+      <Surface style={{ gap: Spacing.sm }}>
+        <AppText variant="bodyBold">📚 İçerik</AppText>
+        <AppText variant="caption" muted>
+          {content.source === 'remote'
+            ? `Sunucudan güncel · ${new Date(content.updatedAt!).toLocaleString('tr-TR')}`
+            : content.source === 'cache'
+              ? 'Cihazdaki son kopya kullanılıyor'
+              : content.remoteConfigured
+                ? 'Uygulamadaki içerik kullanılıyor (sunucuya henüz ulaşılamadı)'
+                : 'Uygulamadaki içerik kullanılıyor'}
+        </AppText>
+        {content.remoteConfigured && <Button title="Şimdi güncelle" tone="neutral" onPress={onSync} />}
+        {syncMsg && (
+          <AppText variant="caption" muted center>
+            {syncMsg}
+          </AppText>
+        )}
+      </Surface>
+
       <Button title="İlerlemeyi sıfırla" tone="neutral" onPress={onReset} />
       <AppText variant="caption" muted center>
-        Hapla · sürüm 0.5
+        Hapla · sürüm 0.7
       </AppText>
     </Screen>
   );

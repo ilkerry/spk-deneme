@@ -41,3 +41,8 @@ example
 # generated native folders
 /ios
 /android
+
+# Supabase ayarları (kişisel)
+.env
+admin/node_modules/
+admin/dist/

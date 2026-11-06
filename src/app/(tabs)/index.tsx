@@ -4,7 +4,7 @@ import { Pressable, View } from 'react-native';
 
 import { LessonCard } from '@/components/LessonCard';
 import { AppText, Button, Chip, EmojiBubble, ProgressBar, Screen, Surface } from '@/components/ui';
-import { lessons } from '@/data/content';
+import { useContent } from '@/store/content';
 import { isDue, isLearned, useDerivedStats, useProgress } from '@/store/progress';
 import { useSettings } from '@/store/settings';
 import { Spacing, useAppTheme } from '@/theme';
@@ -21,6 +21,7 @@ export default function HomeScreen() {
   const { colors } = useAppTheme();
   const { name, avatar, dailyGoal, autoReview } = useSettings();
 
+  const { lessons } = useContent();
   const { cards, achievements: unlocked } = useProgress();
   const { todayCount, streak, knownTotal, today } = useDerivedStats();
 

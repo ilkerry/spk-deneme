@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AchievementToast } from '@/components/celebrate/AchievementToast';
+import { ContentProvider } from '@/store/content';
 import { ProgressProvider } from '@/store/progress';
 import { SettingsProvider } from '@/store/settings';
 import { AppThemeProvider, Fonts, useAppTheme } from '@/theme';
@@ -75,9 +76,11 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SettingsProvider>
         <AppThemeProvider>
-          <ProgressProvider>
-            <RootNavigator />
-          </ProgressProvider>
+          <ContentProvider>
+            <ProgressProvider>
+              <RootNavigator />
+            </ProgressProvider>
+          </ContentProvider>
         </AppThemeProvider>
       </SettingsProvider>
     </GestureHandlerRootView>

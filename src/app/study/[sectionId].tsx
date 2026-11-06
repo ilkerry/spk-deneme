@@ -8,15 +8,13 @@ import type { SwipeCardHandle, SwipeDirection } from '@/components/study/SwipeCa
 import { StudySummary } from '@/components/study/StudySummary';
 import { SwipeDeck } from '@/components/study/SwipeDeck';
 import { AppText, Button, ProgressBar } from '@/components/ui';
-import { getSection, lessons, type Card } from '@/data/content';
+import { getAllCards, getSection, type Card } from '@/data/content';
 import { haptic } from '@/lib/haptics';
 import { filterCards, useProgress, type StudyFilter, type SwipeUndo } from '@/store/progress';
 import { useSettings } from '@/store/settings';
 import { Radius, Spacing, useAppTheme } from '@/theme';
 
 type Result = { card: Card; dir: SwipeDirection; undo: SwipeUndo };
-
-const allCards = lessons.flatMap((l) => l.sections.flatMap((s) => s.cards));
 
 const FILTER_TITLES: Record<StudyFilter, string> = {
   all: '',
@@ -43,7 +41,7 @@ export default function StudyScreen() {
   const { width } = useWindowDimensions();
   const { studyMode, autoReview, update } = useSettings();
 
-  const source = section?.cards ?? (sectionId === 'due' ? allCards : []);
+  const source = section?.cards ?? (sectionId === 'due' ? getAllCards() : []);
   // Deste, ekran açıldığı andaki duruma göre bir kez seçilir (kaydırdıkça değişmez)
   const [round, setRound] = useState<Card[]>(() => filterCards(source, filter, progress.cards));
   const [index, setIndex] = useState(0);

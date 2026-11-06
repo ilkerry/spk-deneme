@@ -1,4 +1,4 @@
-import { lessons } from '@/data/content';
+import type { Lesson } from '@/data/content';
 import { longestStreak } from '@/lib/dates';
 
 import type { ProgressData } from './progress';
@@ -7,7 +7,7 @@ import type { ProgressData } from './progress';
  * Başarımların açılma koşulları. Tanımlar (başlık, emoji) src/data/achievements.ts içinde.
  * Kazanılan başarım geri alınmaz (geri alma / tekrar destesine gönderme rozeti silmez).
  */
-export function evaluateAchievements(data: ProgressData, dailyGoal: number): string[] {
+export function evaluateAchievements(data: ProgressData, dailyGoal: number, lessons: Lesson[]): string[] {
   const active = new Set(Object.keys(data.days).filter((k) => data.days[k].swipes > 0));
   const totalSwipes = Object.values(data.days).reduce((s, d) => s + d.swipes, 0);
   const learned = (id: string) => {

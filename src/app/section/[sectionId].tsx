@@ -6,6 +6,7 @@ import { Pressable, View } from 'react-native';
 import { AppText, Button, EmojiBubble, ProgressBar, Screen, Surface } from '@/components/ui';
 import { getLesson, getSection } from '@/data/content';
 import { haptic } from '@/lib/haptics';
+import { useContent } from '@/store/content';
 import { isLearned, sectionStats, useProgress, type StudyFilter } from '@/store/progress';
 import { Radius, Spacing, useAppTheme } from '@/theme';
 
@@ -26,6 +27,7 @@ const PREVIEW_COUNT = 5;
 
 export default function SectionScreen() {
   const { sectionId } = useLocalSearchParams<{ sectionId: string }>();
+  useContent(); // içerik değişince yeniden çiz
   const section = getSection(sectionId);
   const { colors } = useAppTheme();
   const { cards, requeue } = useProgress();
@@ -61,10 +63,10 @@ export default function SectionScreen() {
       </View>
 
       <View style={{ gap: 6 }}>
-        <ProgressBar value={stats.known / stats.total} color={colors.known} />
+        <ProgressBar value={stats.total ? stats.known / stats.total : 0} color={colors.known} />
         <AppText variant="caption" muted center>
           {stats.known}/{stats.total} kart ezberlendi
-          {stats.known === stats.total ? ' 🎉' : ''}
+          {stats.total > 0 && stats.known === stats.total ? ' 🎉' : ''}
         </AppText>
       </View>
 
