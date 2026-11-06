@@ -1,4 +1,4 @@
-/** Başarım tanımları. Açılma kontrolleri 6. aşamada yazılacak. */
+/** Başarım tanımları. Açılma koşulları: src/store/achievements.ts */
 export type Achievement = {
   id: string;
   emoji: string;
@@ -19,7 +19,7 @@ export const achievements: Achievement[] = [
   { id: 'daily-goal', emoji: '🎯', title: 'Hedef Tamam', description: 'Günlük hedefe ulaş', color: 'review' },
   { id: 'section-done', emoji: '✅', title: 'Bölüm Bitti', description: 'Bir bölümün tamamını ezberle', color: 'known' },
   { id: 'lesson-done', emoji: '🏆', title: 'Ders Ustası', description: 'Bir dersin tamamını ezberle', color: 'primary' },
-  { id: 'night-owl', emoji: '🦉', title: 'Gece Kuşu', description: 'Gece 23:00 sonrası çalış', color: 'sky' },
-  { id: 'early-bird', emoji: '🌅', title: 'Erkenci', description: 'Sabah 07:00 öncesi çalış', color: 'pink' },
+  { id: 'night-owl', emoji: '🦉', title: 'Gece Kuşu', description: 'Gece 23:00–04:00 arası çalış', color: 'sky' },
+  { id: 'early-bird', emoji: '🌅', title: 'Erkenci', description: 'Sabah 04:00–07:00 arası çalış', color: 'pink' },
   { id: 'review-master', emoji: '🔁', title: 'Tekrar Kralı', description: '50 tekrar kartını çalış', color: 'review' },
 ];

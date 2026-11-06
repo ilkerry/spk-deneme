@@ -24,3 +24,20 @@ export function currentStreak(activeDays: Set<string>, today = dayKey()) {
   }
   return streak;
 }
+
+/** Kayıtlardaki en uzun kesintisiz çalışma serisi */
+export function longestStreak(activeDays: Set<string>) {
+  let best = 0;
+  for (const day of activeDays) {
+    // Yalnızca serinin ilk gününden saymaya başla
+    if (activeDays.has(addDays(day, -1))) continue;
+    let len = 0;
+    let d = day;
+    while (activeDays.has(d)) {
+      len++;
+      d = addDays(d, 1);
+    }
+    best = Math.max(best, len);
+  }
+  return best;
+}

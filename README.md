@@ -46,7 +46,7 @@ src/
 | 3 | Ana sayfa, ders ve bölüm ekranlarını gerçek veriye bağlama | ✅ (2. aşamayla birlikte) |
 | 4 | Kaydırmalı kart ekranı ve animasyonlar | ✅ |
 | 5 | Cihazda kayıt (AsyncStorage), ilerleme, tekrar destesi, otomatik tekrar | ✅ |
-| 6 | Seri, günlük hedef, istatistik, başarımlar, profil kaydı | |
+| 6 | İstatistik, başarımlar, rozet kutlaması (konfeti) | ✅ |
 | 7 | Supabase + admin paneli, içerik senkronu | |
 | 8 | Cilalama, ikon, mağaza derlemesi (EAS) | |
 

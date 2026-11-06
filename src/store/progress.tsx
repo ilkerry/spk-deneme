@@ -5,7 +5,8 @@ import type { Card, Lesson, Section } from '@/data/content';
 import { addDays, currentStreak, dayKey } from '@/lib/dates';
 import { loadJSON, saveJSON, StorageKeys } from '@/lib/storage';
 
-import type { AutoReview } from './settings';
+import { evaluateAchievements } from './achievements';
+import { useSettings, type AutoReview } from './settings';
 
 /**
  * Kullanıcı ilerlemesi — yalnızca cihazda saklanır.
@@ -29,9 +30,20 @@ export type CardProgress = {
 
 export type DayLog = { swipes: number; known: number; review: number };
 
-type ProgressData = {
+/** Başarımlar için kaydırma anında tutulan ek bilgiler */
+export type SwipeStats = {
+  /** Tekrar destesinden / otomatik tekrardan yapılan kaydırma sayısı */
+  reviewSwipes: number;
+  nightSwipe: boolean;
+  earlySwipe: boolean;
+};
+
+export type ProgressData = {
   cards: Record<string, CardProgress>;
   days: Record<string, DayLog>;
+  stats: SwipeStats;
+  /** Açılan başarımlar: id → açılma zamanı */
+  achievements: Record<string, string>;
 };
 
 /** Geri alma için kaydırma öncesi durum */
@@ -43,13 +55,23 @@ type ProgressContextValue = ProgressData & {
   /** Ezberlenmiş kartı elle tekrar destesine geri gönderir */
   requeue: (cardId: string) => void;
   reset: () => void;
+  /** Yeni açılan, henüz kutlanmamış başarımlar */
+  unlockQueue: string[];
+  dismissUnlock: () => void;
 };
 
-const empty: ProgressData = { cards: {}, days: {} };
+const empty: ProgressData = {
+  cards: {},
+  days: {},
+  stats: { reviewSwipes: 0, nightSwipe: false, earlySwipe: false },
+  achievements: {},
+};
 const ProgressContext = createContext<ProgressContextValue | null>(null);
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<ProgressData | null>(null);
+  const [unlockQueue, setUnlockQueue] = useState<string[]>([]);
+  const { dailyGoal } = useSettings();
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Geri alma bilgisini anında hesaplayabilmek için verinin güncel kopyası
   const dataRef = useRef<ProgressData>(empty);
@@ -58,6 +80,21 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     loadJSON(StorageKeys.progress, empty).then(setData);
   }, []);
+
+  // Her değişiklikten sonra yeni kazanılan başarımları kontrol et
+  useEffect(() => {
+    if (!data) return;
+    const earned = evaluateAchievements(data, dailyGoal).filter((id) => !data.achievements[id]);
+    if (earned.length === 0) return;
+    const now = new Date().toISOString();
+    setData((d) => {
+      if (!d) return d;
+      const achievements = { ...d.achievements };
+      for (const id of earned) achievements[id] = achievements[id] ?? now;
+      return { ...d, achievements };
+    });
+    setUnlockQueue((q) => [...q, ...earned.filter((id) => !q.includes(id))]);
+  }, [data, dailyGoal]);
 
   // Değişiklikleri kısa bir gecikmeyle diske yaz
   useEffect(() => {
@@ -101,7 +138,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       }
 
       const log = cur.days[today] ?? { swipes: 0, known: 0, review: 0 };
+      const hour = new Date().getHours();
+      const fromReview = prev?.status === 'review' || (prev?.status === 'known' && !!prev.dueAt && prev.dueAt <= today);
       return {
+        ...cur,
+        stats: {
+          reviewSwipes: cur.stats.reviewSwipes + (fromReview ? 1 : 0),
+          nightSwipe: cur.stats.nightSwipe || hour >= 23 || hour < 4,
+          earlySwipe: cur.stats.earlySwipe || (hour >= 4 && hour < 7),
+        },
         cards: { ...cur.cards, [cardId]: next },
         days: {
           ...cur.days,
@@ -133,7 +178,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             },
           }
         : cur.days;
-      return { cards, days };
+      return { ...cur, cards, days };
     });
   }, []);
 
@@ -151,11 +196,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const reset = useCallback(() => setData(empty), []);
+  const reset = useCallback(() => {
+    setData(empty);
+    setUnlockQueue([]);
+  }, []);
+
+  const dismissUnlock = useCallback(() => setUnlockQueue((q) => q.slice(1)), []);
 
   const value = useMemo(
-    () => (data ? { ...data, swipe, undo, requeue, reset } : null),
-    [data, swipe, undo, requeue, reset],
+    () => (data ? { ...data, swipe, undo, requeue, reset, unlockQueue, dismissUnlock } : null),
+    [data, swipe, undo, requeue, reset, unlockQueue, dismissUnlock],
   );
 
   // Veriler yüklenene kadar hiçbir şey çizme (açılış ekranı görünür kalır)

@@ -21,7 +21,7 @@ export default function HomeScreen() {
   const { colors } = useAppTheme();
   const { name, avatar, dailyGoal, autoReview } = useSettings();
 
-  const { cards } = useProgress();
+  const { cards, achievements: unlocked } = useProgress();
   const { todayCount, streak, knownTotal, today } = useDerivedStats();
 
   // Kaldığın yer: ezberlenmemiş kartı olan ilk bölüm
@@ -51,7 +51,7 @@ export default function HomeScreen() {
       <View style={{ flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' }}>
         <Chip emoji="🔥" label={`${streak} gün seri`} bg={colors.reviewSoft} fg={colors.review} />
         <Chip emoji="⭐" label={`${knownTotal} ezber`} bg={colors.primarySoft} fg={colors.primaryDeep} />
-        <Chip emoji="🏅" label="0 rozet" bg={colors.lilacSoft} fg={colors.lilac} />
+        <Chip emoji="🏅" label={`${Object.keys(unlocked).length} rozet`} bg={colors.lilacSoft} fg={colors.lilac} />
       </View>
 
       {/* Günlük hedef */}

@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { AchievementToast } from '@/components/celebrate/AchievementToast';
 import { ProgressProvider } from '@/store/progress';
 import { SettingsProvider } from '@/store/settings';
 import { AppThemeProvider, Fonts, useAppTheme } from '@/theme';
@@ -55,6 +56,7 @@ function RootNavigator() {
           options={{ presentation: 'fullScreenModal', headerShown: false, animation: 'slide_from_bottom' }}
         />
       </Stack>
+      <AchievementToast />
     </ThemeProvider>
   );
 }
